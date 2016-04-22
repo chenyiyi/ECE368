@@ -1,0 +1,124 @@
+//
+//  project2.c
+//  project2
+//
+//  Created by Lee Chrison Moon on 15/3/13.
+//  Copyright (c) 2015年 Lee Chrison Moon. All rights reserved.
+//
+
+#include "project2.h"
+#include <stdlib.h>
+#include <stdio.h>
+
+void radix_sort(int list[], int n, int max, int min);
+void counting_sort(int *list, int n, int max, int min,int count_n, int count_p);
+
+void sort(int list[], int n){
+    
+    int i;
+    int min;
+    int max;
+    int count_n = 0;
+    int count_p = 0;
+
+    
+    min = list[0];
+    max = list[0];
+    for(i = 0; i < n; i++){
+        if(min > list[i])
+            min = list[i];
+        if(max < list[i])
+            max = list[i];
+        if(list[i] < 0 )
+            count_n++;
+        if(list[i] >= 0 )
+            count_p++;
+    }
+    long int range = (long int)max - (long int)min;
+    if(range / n >= 50){
+        radix_sort(list,n,max,min);
+    }
+    else{
+        counting_sort(list,n,max,min,count_n,count_p);
+    }
+}
+void radix_sort(int list[], int n, int max, int min){
+    int i;
+    long int *a;
+    a = malloc(sizeof(int)* n);
+    int significantDigit = 1;
+    long int range = (long int)max - (long int)min;
+    
+    while (range / significantDigit > 0){
+        
+        int bucket[10] = {0};
+        
+        for (i = 0; i < n; i++)
+            bucket[((long int)list[i] - (long int)min) / significantDigit % 10]++;
+        
+        for (i = 1; i < 10; i++)
+            bucket[i] += bucket[i - 1];
+        
+        for (i = n - 1; i >= 0; i--)
+            a[--bucket[(((long int)list[i]-(long int)min) / significantDigit) % 10]] = (long int)list[i] - (long int)min;
+        
+        for (i = 0; i < n; i++)
+            list[i] = (int)a[i] + min;
+        
+        significantDigit *= 10;
+
+    }
+    free(a);
+}
+    
+void counting_sort(int *list, int n, int max, int min, int count_n, int count_p){
+    int *arr_p;
+    int *arr_n;
+    int i;
+    int n_max = min;
+    arr_n = (int*) malloc(sizeof(int)* (count_n+1));
+    arr_p = (int*) malloc(sizeof(int)* (count_p+1));
+    
+    int j = 0;
+    int k = 0;
+
+    for(i = 0; i < n; i++){
+        if(list[i] < 0){
+            if(n_max < list[i]){
+                n_max = list[i];
+            }
+            arr_n[j] = list[i] - min;
+            j++;
+        }
+        if(list[i] >= 0){
+            arr_p[k] = list[i];
+            k++;
+        }
+    }
+    int *sort_n = calloc((-min + 1), sizeof(int));
+    int *sort_p = calloc(max+1, sizeof(int));
+
+    for(i = 0; i < j; i++){
+        sort_n[arr_n[i]]++;
+    }
+    for(i = 0; i < k; i++){
+        sort_p[arr_p[i]]++;
+    }
+    int ii = 0;
+    for(i = 0; i <= (n_max - min); i++){
+        if(sort_n[i] > 0){
+            list[ii] = i + min;
+            ii++;
+        }
+    }
+    for(i = 0; i <= max; i++){
+        if(sort_p[i] > 0){
+            list[ii] = i;
+            ii++;
+        }
+    }
+    free(arr_n);
+    free(arr_p);
+    free(sort_n);
+    free(sort_p);
+}
